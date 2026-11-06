@@ -2,8 +2,8 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
-// @ts-ignore
-import html2pdf from "html2pdf.js";
+import html2canvas from "html2canvas-pro";
+import { jsPDF } from "jspdf";
 
 type ReportData = {
   employer: string;
@@ -42,22 +42,49 @@ export default function ReportsPage() {
     }
   };
 
-  const handleDownloadPDF = () => {
+  // 👇 دالة جديدة لتحميل PDF باستخدام html2canvas-pro و jsPDF
+  const handleDownloadPDF = async () => {
     if (!reportRef.current) return;
     setDownloading(true);
 
-    const element = reportRef.current;
-        const opt = {
-      margin:       10,
-      filename:     `تقرير_${report?.employer}.pdf`,
-      image:        { type: 'jpeg' as const, quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true, backgroundColor: "#0f172a" },
-      jsPDF:        { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
-    };
+    try {
+      const element = reportRef.current;
+      
+      // استخدام html2canvas-pro لتحويل العنصر إلى صورة
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#0f172a", // لون الخلفية الغامق
+      });
 
-    html2pdf().set(opt).from(element).save().then(() => {
+      const imgData = canvas.toDataURL("image/png");
+      
+      // إنشاء ملف PDF باستخدام jsPDF
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      
+      // حساب النسبة لملء عرض الصفحة
+      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+      const imgX = (pdfWidth - imgWidth * ratio) / 2;
+      const imgY = 10;
+
+      pdf.addImage(imgData, "PNG", imgX, imgY, imgWidth * ratio, imgHeight * ratio);
+      pdf.save(`تقرير_${report?.employer}.pdf`);
+
+    } catch (err) {
+      console.error("PDF Error:", err);
+      alert("تعذر تحميل ملف PDF");
+    } finally {
       setDownloading(false);
-    });
+    }
   };
 
   const formatDate = (dateStr: string) => {
