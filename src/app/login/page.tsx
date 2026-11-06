@@ -11,8 +11,8 @@ export default function LoginPage() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // كلمة السر (مؤقتاً، بعدين ننقلها لمتغير بيئة)
-    const ADMIN_PASSWORD = "123456";
+    // 👇 كلمة السر (اللي حطيتها في Vercel)
+    const ADMIN_PASSWORD = "364621463AlaaHadry"; // 👈 تأكد إنها نفس اللي حطيتها في Vercel
 
     if (password === ADMIN_PASSWORD) {
       localStorage.setItem("admin_logged_in", "true");
