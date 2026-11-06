@@ -173,35 +173,32 @@ export default function PackageImagePage() {
                   {/* مساحة فارغة فوق عشان الحصان يبين */}
                   <div className="h-1/3"></div>
 
-                  {/* اسم البكج + الكود + الريت */}
-                  <div className="flex flex-col items-center gap-4 mt-auto">
-                    
-                    {/* اسم البكج */}
-                    <div className="text-center bg-black/60 backdrop-blur-md px-8 py-2 rounded-2xl border border-white/10">
-                      <h2 className="text-3xl font-bold text-white drop-shadow-lg">
-                        {packageName || "اسم البكج"}
-                      </h2>
+                  {/* الكود والريت (في المنتصف) */}
+                  <div className="flex justify-center gap-4 mt-auto">
+                    <div className="bg-black/30 backdrop-blur-md px-6 py-3 rounded-2xl flex items-center gap-3 border border-white/10">
+                      <span className="text-sm text-slate-300">الكود:</span>
+                      <span className="font-bold text-2xl text-yellow-400">{packageCode || "0000"}</span>
                     </div>
-
-                    {/* الكود والريت */}
-                    <div className="flex justify-center gap-4">
-                      <div className="bg-black/60 backdrop-blur-md px-6 py-3 rounded-2xl text-center min-w-[120px] border border-white/10">
-                        <div className="text-sm text-slate-300 mb-1">الكود</div>
-                        <div className="font-bold text-2xl text-yellow-400">{packageCode || "0000"}</div>
-                      </div>
-                      <div className="bg-black/60 backdrop-blur-md px-6 py-3 rounded-2xl text-center min-w-[120px] border border-white/10">
-                        <div className="text-sm text-slate-300 mb-1">الريت</div>
-                        <div className="font-bold text-2xl text-yellow-400">{packageRate || "0"}</div>
-                      </div>
+                    <div className="bg-black/30 backdrop-blur-md px-6 py-3 rounded-2xl flex items-center gap-3 border border-white/10">
+                      <span className="text-sm text-slate-300">الريت:</span>
+                      <span className="font-bold text-2xl text-yellow-400">{packageRate || "0"}</span>
                     </div>
-
                   </div>
 
                   {/* الخيارات (تحت) */}
                   <div className="mt-8 mx-6">
-                    <div className="bg-black/60 backdrop-blur-md p-5 rounded-2xl border border-white/10">
+                    <div className="bg-black/30 backdrop-blur-md p-5 rounded-2xl border border-white/10">
                       <div className="flex justify-between items-center mb-3 border-b border-white/20 pb-2">
-                        <span className="text-lg font-bold text-white">الخيارات</span>
+                        {/* 👇 اسم البكج بجانب كلمة الخيارات باللون الأزرق */}
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg font-bold text-white">الخيارات</span>
+                          {packageName && (
+                            <>
+                              <span className="text-slate-500">|</span>
+                              <span className="text-lg font-bold text-sky-400">{packageName}</span>
+                            </>
+                          )}
+                        </div>
                         <span className="text-sm text-yellow-400 font-bold">{options.filter(o => o).length}</span>
                       </div>
                       <div className="grid grid-cols-2 gap-3 text-sm">
