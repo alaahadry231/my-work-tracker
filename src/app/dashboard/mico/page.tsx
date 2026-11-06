@@ -20,6 +20,7 @@ type Deposit = {
 type Target = {
   id: number;
   target_amount: number;
+  completed_amount: number;
   sort_order: number;
 };
 
@@ -31,17 +32,14 @@ export default function MicoLivePage() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
 
-  // فورم إضافة شهر
   const [newMonth, setNewMonth] = useState("");
   const [addingMonth, setAddingMonth] = useState(false);
 
-  // فورم إضافة وارد
   const [depositAmount, setDepositAmount] = useState("");
   const [depositDate, setDepositDate] = useState(new Date().toISOString().split("T")[0]);
   const [depositNotes, setDepositNotes] = useState("");
   const [addingDeposit, setAddingDeposit] = useState(false);
 
-  // الشهر المحدد من السجل
   const [selectedHistoryMonth, setSelectedHistoryMonth] = useState<Month | null>(null);
   const [historyDeposits, setHistoryDeposits] = useState<Deposit[]>([]);
 
@@ -166,21 +164,17 @@ export default function MicoLivePage() {
     }
   };
 
-  // حساب الإجماليات والتارغت
   const totalDeposits = deposits.reduce((sum, d) => sum + Number(d.amount), 0);
   
+  // حساب التارغت الحالي
   let currentTarget = targets[0];
-  let nextTarget = targets[1];
   for (let i = 0; i < targets.length; i++) {
     if (totalDeposits >= targets[i].target_amount) {
       currentTarget = targets[i];
-      nextTarget = targets[i + 1] || null;
     } else {
       break;
     }
   }
-
-  const remainingForNext = nextTarget ? nextTarget.target_amount - totalDeposits : 0;
 
   if (loading) {
     return <div className="text-slate-500 text-center py-20">جاري التحميل...</div>;
@@ -245,31 +239,18 @@ export default function MicoLivePage() {
                   <div className="text-xs text-slate-500 mb-1">إجمالي الواردات</div>
                   <div className="text-2xl font-bold text-green-400">{totalDeposits.toLocaleString("en-US")} توكن</div>
                 </div>
+                {/* 👇 التارغت والمخلص */}
                 <div className="bg-slate-950 rounded-xl p-4 border border-slate-800">
-                  <div className="text-xs text-slate-500 mb-1">عدد العمليات</div>
-                  <div className="text-2xl font-bold text-white">{deposits.length}</div>
+                  <div className="text-xs text-slate-500 mb-1">التارغت الحالي</div>
+                  <div className="text-lg font-bold text-white mb-2">
+                    {Number(currentTarget.target_amount).toLocaleString("en-US")}
+                  </div>
+                  <div className="text-xs text-slate-500 mb-1">المخلص</div>
+                  <div className="text-lg font-bold text-yellow-400">
+                    {currentTarget.completed_amount.toLocaleString("en-US")}
+                  </div>
                 </div>
               </div>
-            </div>
-
-            {/* بطاقة التارغت */}
-            <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 flex flex-col justify-center">
-              <div className="text-sm text-slate-400 mb-2">وصلت للتارغت</div>
-              {currentTarget && (
-                <div className="text-2xl font-bold text-sky-400 mb-2">
-                  {Number(currentTarget.target_amount).toLocaleString("en-US")}
-                </div>
-              )}
-              {nextTarget ? (
-                <>
-                  <div className="text-sm text-slate-400 mb-1">باقي للتارغت الجاي</div>
-                  <div className="text-xl font-bold text-yellow-400">
-                    {remainingForNext.toLocaleString("en-US")}
-                  </div>
-                </>
-              ) : (
-                <div className="text-sm text-green-400 font-bold">🎉 وصلت لأعلى تارغت!</div>
-              )}
             </div>
           </div>
 
@@ -344,38 +325,6 @@ export default function MicoLivePage() {
                 )}
               </tbody>
             </table>
-          </div>
-
-          {/* 👇 جدول الملخص (التارغتات) */}
-          <div className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
-            <div className="p-4 border-b border-slate-800 bg-slate-800/50 font-bold text-sky-400">📊 جدول الملخص (التارغتات)</div>
-            <div className="max-h-60 overflow-y-auto">
-              <table className="w-full text-right">
-                <thead className="bg-slate-950/50 text-slate-400 text-sm sticky top-0">
-                  <tr>
-                    <th className="p-3 font-normal">التارغت</th>
-                    <th className="p-3 font-normal">الحالة</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800">
-                  {targets.map((t) => {
-                    const isAchieved = totalDeposits >= t.target_amount;
-                    return (
-                      <tr key={t.id} className={isAchieved ? "bg-green-500/5" : ""}>
-                        <td className="p-3 text-white font-medium">{Number(t.target_amount).toLocaleString("en-US")}</td>
-                        <td className="p-3">
-                          {isAchieved ? (
-                            <span className="text-green-400 text-xs font-bold flex items-center gap-1">✅ تم الوصول</span>
-                          ) : (
-                            <span className="text-slate-500 text-xs">⏳ لم يتم</span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
           </div>
         </div>
       )}
