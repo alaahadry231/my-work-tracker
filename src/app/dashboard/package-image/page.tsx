@@ -8,16 +8,13 @@ export default function PackageImagePage() {
   const [packageName, setPackageName] = useState("");
   const [packageCode, setPackageCode] = useState("");
   const [packageRate, setPackageRate] = useState("");
-  const [optionsCount, setOptionsCount] = useState("");
   const [options, setOptions] = useState<string[]>([""]);
 
-  // خلفية البطاقة (إنت بترفعها)
   const [bgImage, setBgImage] = useState<string | null>(null);
   
   const cardRef = useRef<HTMLDivElement>(null);
   const [downloading, setDownloading] = useState(false);
 
-  // 👇 رفع صورة الخلفية
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -29,32 +26,28 @@ export default function PackageImagePage() {
     }
   };
 
-  // 👇 إضافة خيار جديد
   const addOption = () => {
     setOptions([...options, ""]);
   };
 
-  // 👇 تعديل خيار
   const updateOption = (index: number, value: string) => {
     const newOptions = [...options];
     newOptions[index] = value;
     setOptions(newOptions);
   };
 
-  // 👇 حذف خيار
   const removeOption = (index: number) => {
     const newOptions = options.filter((_, i) => i !== index);
     setOptions(newOptions.length > 0 ? newOptions : [""]);
   };
 
-  // 👇 تحميل الصورة
   const handleDownload = async () => {
     if (!cardRef.current || !bgImage) return;
     setDownloading(true);
     try {
       const dataUrl = await toPng(cardRef.current, {
         quality: 1,
-        pixelRatio: 3, // دقة عالية
+        pixelRatio: 3,
         cacheBust: true,
       });
       const link = document.createElement("a");
@@ -78,8 +71,8 @@ export default function PackageImagePage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         
-        {/* 👇 القسم الأيسر: فورم البيانات */}
-        <div className="space-y-4 bg-slate-900 rounded-2xl border border-slate-800 p-6">
+        {/* فورم البيانات */}
+        <div className="space-y-4 bg-slate-900 rounded-2xl border border-slate-800 p-6 h-fit">
           <h2 className="text-xl font-bold mb-4 text-sky-400">1. أدخل البيانات</h2>
           
           <div>
@@ -99,7 +92,7 @@ export default function PackageImagePage() {
               type="text"
               value={packageName}
               onChange={(e) => setPackageName(e.target.value)}
-              placeholder="مثلاً: بكج الأبطال"
+              placeholder="مثلاً: دوري الأبطال"
               className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white"
             />
           </div>
@@ -111,7 +104,7 @@ export default function PackageImagePage() {
                 type="text"
                 value={packageCode}
                 onChange={(e) => setPackageCode(e.target.value)}
-                placeholder="ABCD123"
+                placeholder="123456"
                 className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white"
               />
             </div>
@@ -121,21 +114,10 @@ export default function PackageImagePage() {
                 type="text"
                 value={packageRate}
                 onChange={(e) => setPackageRate(e.target.value)}
-                placeholder="×1.5"
+                placeholder="25"
                 className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white"
               />
             </div>
-          </div>
-
-          <div>
-            <label className="block text-sm text-slate-400 mb-2">عدد الخيارات</label>
-            <input
-              type="number"
-              value={optionsCount}
-              onChange={(e) => setOptionsCount(e.target.value)}
-              placeholder="5"
-              className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white"
-            />
           </div>
 
           <div>
@@ -166,7 +148,7 @@ export default function PackageImagePage() {
           </div>
         </div>
 
-        {/* 👇 القسم الأيمن: معاينة الصورة */}
+        {/* معاينة الصورة */}
         <div className="space-y-4">
           <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6">
             <h2 className="text-xl font-bold mb-4 text-sky-400">2. معاينة البطاقة</h2>
@@ -178,48 +160,58 @@ export default function PackageImagePage() {
             ) : (
               <div 
                 ref={cardRef}
-                className="relative w-full aspect-[4/5] rounded-xl overflow-hidden shadow-2xl"
+                className="relative w-full aspect-[4/5] rounded-xl overflow-hidden shadow-2xl font-sans"
                 style={{
                   backgroundImage: `url(${bgImage})`,
                   backgroundSize: "cover",
                   backgroundPosition: "center",
                 }}
               >
-                {/* 👇 هنا البيانات اللي رح تنحط فوق الصورة */}
-                <div className="absolute inset-0 p-6 flex flex-col justify-between text-white" dir="rtl">
+                {/* 👇 التصميم الجديد */}
+                <div className="absolute inset-0 flex flex-col justify-between text-white pb-8" dir="rtl">
                   
-                  {/* اسم البكج (فوق) */}
-                  <div className="text-center">
-                    <h2 className="text-2xl font-bold bg-black/50 p-2 rounded-lg backdrop-blur-sm inline-block">
-                      {packageName || "اسم البكج"}
-                    </h2>
-                  </div>
+                  {/* مساحة فارغة فوق عشان الحصان يبين */}
+                  <div className="h-1/3"></div>
 
-                  {/* الكود والريت (وسط) */}
-                  <div className="flex justify-center gap-4">
-                    <div className="bg-black/60 backdrop-blur-sm px-4 py-2 rounded-xl text-center">
-                      <div className="text-xs text-slate-300">الكود</div>
-                      <div className="font-mono text-lg">{packageCode || "CODE"}</div>
+                  {/* اسم البكج + الكود + الريت */}
+                  <div className="flex flex-col items-center gap-4 mt-auto">
+                    
+                    {/* اسم البكج */}
+                    <div className="text-center bg-black/60 backdrop-blur-md px-8 py-2 rounded-2xl border border-white/10">
+                      <h2 className="text-3xl font-bold text-white drop-shadow-lg">
+                        {packageName || "اسم البكج"}
+                      </h2>
                     </div>
-                    <div className="bg-black/60 backdrop-blur-sm px-4 py-2 rounded-xl text-center">
-                      <div className="text-xs text-slate-300">الريت</div>
-                      <div className="font-bold text-lg text-yellow-400">{packageRate || "×1"}</div>
+
+                    {/* الكود والريت */}
+                    <div className="flex justify-center gap-4">
+                      <div className="bg-black/60 backdrop-blur-md px-6 py-3 rounded-2xl text-center min-w-[120px] border border-white/10">
+                        <div className="text-sm text-slate-300 mb-1">الكود</div>
+                        <div className="font-bold text-2xl text-yellow-400">{packageCode || "0000"}</div>
+                      </div>
+                      <div className="bg-black/60 backdrop-blur-md px-6 py-3 rounded-2xl text-center min-w-[120px] border border-white/10">
+                        <div className="text-sm text-slate-300 mb-1">الريت</div>
+                        <div className="font-bold text-2xl text-yellow-400">{packageRate || "0"}</div>
+                      </div>
                     </div>
+
                   </div>
 
                   {/* الخيارات (تحت) */}
-                  <div className="bg-black/60 backdrop-blur-sm p-4 rounded-xl">
-                    <div className="flex justify-between items-center mb-2 border-b border-white/20 pb-1">
-                      <span className="text-sm text-slate-300">الخيارات</span>
-                      <span className="text-xs text-sky-400">{optionsCount || options.filter(o => o).length}</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-1 text-xs">
-                      {options.filter(o => o).map((opt, i) => (
-                        <div key={i} className="flex items-center gap-1">
-                          <span className="text-green-400">✓</span>
-                          <span>{opt}</span>
-                        </div>
-                      ))}
+                  <div className="mt-8 mx-6">
+                    <div className="bg-black/60 backdrop-blur-md p-5 rounded-2xl border border-white/10">
+                      <div className="flex justify-between items-center mb-3 border-b border-white/20 pb-2">
+                        <span className="text-lg font-bold text-white">الخيارات</span>
+                        <span className="text-sm text-yellow-400 font-bold">{options.filter(o => o).length}</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        {options.filter(o => o).map((opt, i) => (
+                          <div key={i} className="flex items-start gap-2">
+                            <span className="text-green-500 font-bold text-base mt-0.5">✓</span>
+                            <span className="leading-snug">{opt}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
 
