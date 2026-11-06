@@ -8,6 +8,7 @@ type Month = {
   month_name: string;
   status: string;
   created_at: string;
+  total_deposits: number; // 👈 ضفنا هاد
 };
 
 type Deposit = {
@@ -164,9 +165,21 @@ export default function MicoLivePage() {
     }
   };
 
+  // دالة عشان نحسب التارغت اللي وصله الشهر
+  const getMonthTarget = (total: number) => {
+    let currentTarget = { target_amount: 0, completed_amount: 0 };
+    for (let i = 0; i < targets.length; i++) {
+      if (total >= targets[i].target_amount) {
+        currentTarget = targets[i];
+      } else {
+        break;
+      }
+    }
+    return currentTarget;
+  };
+
   const totalDeposits = deposits.reduce((sum, d) => sum + Number(d.amount), 0);
   
-  // 👇 الحسبة الجديدة والصح
   let currentTarget = { target_amount: 0, completed_amount: 0 };
   let nextTarget = targets[0] || null;
 
@@ -179,7 +192,6 @@ export default function MicoLivePage() {
     }
   }
 
-  // المتبقي للجاي = (التارغت الجاي - إجمالي الوارد)
   const remainingForNext = nextTarget ? (nextTarget.target_amount - totalDeposits) : 0;
 
   if (loading) {
@@ -227,28 +239,24 @@ export default function MicoLivePage() {
           
           {/* البطاقة اللي فوق (4 مربعات) */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* 1. إجمالي الوارد */}
             <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5 flex flex-col justify-center text-center">
               <div className="text-sm text-slate-400 mb-2">إجمالي الوارد</div>
               <div className="text-2xl font-bold text-green-400">{totalDeposits.toLocaleString("en-US")}</div>
               <div className="text-xs text-slate-500 mt-1">توكن</div>
             </div>
 
-            {/* 2. المتبقي للجاي */}
             <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5 flex flex-col justify-center text-center">
               <div className="text-sm text-slate-400 mb-2">المتبقي للجاي</div>
               <div className="text-2xl font-bold text-yellow-400">{remainingForNext.toLocaleString("en-US")}</div>
               <div className="text-xs text-slate-500 mt-1">توكن</div>
             </div>
 
-            {/* 3. المخلص */}
             <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5 flex flex-col justify-center text-center">
               <div className="text-sm text-slate-400 mb-2">المخلص</div>
               <div className="text-2xl font-bold text-sky-400">${currentTarget.completed_amount.toLocaleString("en-US")}</div>
               <div className="text-xs text-slate-500 mt-1">دولار</div>
             </div>
 
-            {/* 4. التارغت الحالي */}
             <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5 flex flex-col justify-center text-center">
               <div className="text-sm text-slate-400 mb-2">التارغت الحالي</div>
               <div className="text-2xl font-bold text-white">{currentTarget.target_amount.toLocaleString("en-US")}</div>
@@ -256,7 +264,6 @@ export default function MicoLivePage() {
             </div>
           </div>
 
-          {/* زر إغلاق الشهر */}
           <div className="flex justify-end">
             <button
               onClick={handleCloseMonth}
@@ -346,16 +353,21 @@ export default function MicoLivePage() {
         <div className="mt-10">
           <h2 className="text-xl font-bold mb-4">📚 سجل الشهور المغلقة</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {months.filter(m => m.status === "closed").map((month) => (
-              <button
-                key={month.id}
-                onClick={() => loadHistoryMonth(month)}
-                className="bg-slate-900 rounded-2xl border border-slate-800 p-4 hover:border-sky-500/50 transition text-right"
-              >
-                <div className="text-lg font-bold text-sky-400">{month.month_name}</div>
-                <div className="text-xs text-slate-500">مغلق</div>
-              </button>
-            ))}
+            {months.filter(m => m.status === "closed").map((month) => {
+              // 👇 نجيب التارغت اللي وصله هالشهر
+              const monthTarget = getMonthTarget(Number(month.total_deposits));
+              return (
+                <button
+                  key={month.id}
+                  onClick={() => loadHistoryMonth(month)}
+                  className="bg-slate-900 rounded-2xl border border-slate-800 p-4 hover:border-sky-500/50 transition text-right flex flex-col gap-1"
+                >
+                  <div className="text-lg font-bold text-sky-400">{month.month_name}</div>
+                  <div className="text-xs text-green-400">الوارد: {Number(month.total_deposits).toLocaleString("en-US")} توكن</div>
+                  <div className="text-xs text-white">التارغت: {monthTarget.target_amount.toLocaleString("en-US")}</div>
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
@@ -365,7 +377,14 @@ export default function MicoLivePage() {
         <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 rounded-2xl border border-slate-800 w-full max-w-2xl max-h-[90vh] flex flex-col">
             <div className="flex items-center justify-between p-4 border-b border-slate-800">
-              <h3 className="text-xl font-bold">سجل {selectedHistoryMonth.month_name}</h3>
+              <div>
+                <h3 className="text-xl font-bold">سجل {selectedHistoryMonth.month_name}</h3>
+                {/* 👇 عرض ملخص الشهر */}
+                <div className="text-sm text-slate-400 mt-1">
+                  الوارد: {Number(selectedHistoryMonth.total_deposits).toLocaleString("en-US")} توكن | 
+                  التارغت اللي وصله: {getMonthTarget(Number(selectedHistoryMonth.total_deposits)).target_amount.toLocaleString("en-US")} توكن
+                </div>
+              </div>
               <button onClick={() => setSelectedHistoryMonth(null)} className="text-slate-400 hover:text-white">✕</button>
             </div>
             <div className="p-4 overflow-y-auto">

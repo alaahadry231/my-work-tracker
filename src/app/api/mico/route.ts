@@ -3,7 +3,12 @@ import { sql } from "@/lib/db";
 
 export async function GET() {
   try {
-    const months = await sql`select * from mico_months order by created_at desc`;
+    const months = await sql`
+      select m.*, 
+             (select coalesce(sum(amount), 0) from mico_deposits where month_id = m.id) as total_deposits
+      from mico_months m 
+      order by m.created_at desc
+    `;
     const targets = await sql`select * from mico_targets order by sort_order asc`;
     return NextResponse.json({ months, targets });
   } catch (error) {
@@ -60,7 +65,6 @@ export async function PUT(req: NextRequest) {
   }
 }
 
-// 👇 دالة الحذف
 export async function DELETE(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
