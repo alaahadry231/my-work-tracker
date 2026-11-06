@@ -123,6 +123,17 @@ export default function MicoLivePage() {
     }
   };
 
+  const handleDeleteDeposit = async (id: number) => {
+    if (!confirm("هل أنت متأكد من حذف هذا الوارد؟")) return;
+    try {
+      const res = await fetch(`/api/mico?deposit_id=${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("فشل الحذف");
+      await fetchData();
+    } catch (err: any) {
+      setMessage(err.message);
+    }
+  };
+
   const handleCloseMonth = async () => {
     if (!activeMonth) return;
     if (!confirm("هل أنت متأكد من إغلاق الشهر؟ لن تتمكن من إضافة واردات جديدة عليه.")) return;
@@ -232,7 +243,7 @@ export default function MicoLivePage() {
               <div className="grid grid-cols-2 gap-3 mt-4">
                 <div className="bg-slate-950 rounded-xl p-4 border border-slate-800">
                   <div className="text-xs text-slate-500 mb-1">إجمالي الواردات</div>
-                  <div className="text-2xl font-bold text-green-400">{totalDeposits.toLocaleString("en-US")} ل.س</div>
+                  <div className="text-2xl font-bold text-green-400">{totalDeposits.toLocaleString("en-US")} توكن</div>
                 </div>
                 <div className="bg-slate-950 rounded-xl p-4 border border-slate-800">
                   <div className="text-xs text-slate-500 mb-1">عدد العمليات</div>
@@ -270,7 +281,7 @@ export default function MicoLivePage() {
                 type="number"
                 value={depositAmount}
                 onChange={(e) => setDepositAmount(e.target.value)}
-                placeholder="المبلغ"
+                placeholder="المبلغ (توكن)"
                 className="px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-green-500 focus:outline-none text-white"
                 required
                 min="1"
@@ -308,22 +319,63 @@ export default function MicoLivePage() {
                   <th className="p-3 font-normal">التاريخ</th>
                   <th className="p-3 font-normal">المبلغ</th>
                   <th className="p-3 font-normal">ملاحظات</th>
+                  <th className="p-3 font-normal text-center">حذف</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800">
                 {deposits.length === 0 ? (
-                  <tr><td colSpan={3} className="p-6 text-center text-slate-500">لا توجد واردات بعد</td></tr>
+                  <tr><td colSpan={4} className="p-6 text-center text-slate-500">لا توجد واردات بعد</td></tr>
                 ) : (
                   deposits.map((dep) => (
                     <tr key={dep.id} className="hover:bg-slate-800/30">
                       <td className="p-3 text-white">{formatDate(dep.deposit_date)}</td>
-                      <td className="p-3 text-green-400 font-bold">{Number(dep.amount).toLocaleString("en-US")} ل.س</td>
+                      <td className="p-3 text-green-400 font-bold">{Number(dep.amount).toLocaleString("en-US")} توكن</td>
                       <td className="p-3 text-slate-400 text-sm">{dep.notes || "-"}</td>
+                      <td className="p-3 text-center">
+                        <button
+                          onClick={() => handleDeleteDeposit(dep.id)}
+                          className="px-2 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs border border-red-500/30 transition"
+                        >
+                          🗑️ حذف
+                        </button>
+                      </td>
                     </tr>
                   ))
                 )}
               </tbody>
             </table>
+          </div>
+
+          {/* 👇 جدول الملخص (التارغتات) */}
+          <div className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
+            <div className="p-4 border-b border-slate-800 bg-slate-800/50 font-bold text-sky-400">📊 جدول الملخص (التارغتات)</div>
+            <div className="max-h-60 overflow-y-auto">
+              <table className="w-full text-right">
+                <thead className="bg-slate-950/50 text-slate-400 text-sm sticky top-0">
+                  <tr>
+                    <th className="p-3 font-normal">التارغت</th>
+                    <th className="p-3 font-normal">الحالة</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800">
+                  {targets.map((t) => {
+                    const isAchieved = totalDeposits >= t.target_amount;
+                    return (
+                      <tr key={t.id} className={isAchieved ? "bg-green-500/5" : ""}>
+                        <td className="p-3 text-white font-medium">{Number(t.target_amount).toLocaleString("en-US")}</td>
+                        <td className="p-3">
+                          {isAchieved ? (
+                            <span className="text-green-400 text-xs font-bold flex items-center gap-1">✅ تم الوصول</span>
+                          ) : (
+                            <span className="text-slate-500 text-xs">⏳ لم يتم</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
@@ -368,7 +420,7 @@ export default function MicoLivePage() {
                   {historyDeposits.map((dep) => (
                     <tr key={dep.id}>
                       <td className="p-3 text-white">{formatDate(dep.deposit_date)}</td>
-                      <td className="p-3 text-green-400 font-bold">{Number(dep.amount).toLocaleString("en-US")} ل.س</td>
+                      <td className="p-3 text-green-400 font-bold">{Number(dep.amount).toLocaleString("en-US")} توكن</td>
                       <td className="p-3 text-slate-400 text-sm">{dep.notes || "-"}</td>
                     </tr>
                   ))}

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@/lib/db";
 
-// GET: جلب كل الشهور مع الواردات والتارغت
 export async function GET() {
   try {
     const months = await sql`select * from mico_months order by created_at desc`;
@@ -13,7 +12,6 @@ export async function GET() {
   }
 }
 
-// POST: إضافة شهر جديد أو إضافة وارد
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -50,7 +48,6 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// PUT: إغلاق شهر
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
@@ -60,5 +57,23 @@ export async function PUT(req: NextRequest) {
   } catch (error) {
     console.error("Update error:", error);
     return NextResponse.json({ error: "Update failed" }, { status: 500 });
+  }
+}
+
+// 👇 دالة الحذف
+export async function DELETE(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const depositId = searchParams.get("deposit_id");
+
+    if (!depositId) {
+      return NextResponse.json({ error: "deposit_id مطلوب" }, { status: 400 });
+    }
+
+    await sql`delete from mico_deposits where id = ${depositId}`;
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Delete error:", error);
+    return NextResponse.json({ error: "Delete failed" }, { status: 500 });
   }
 }
