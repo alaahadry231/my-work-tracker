@@ -14,6 +14,7 @@ export default function Sidebar() {
     { href: "/dashboard/add-withdrawal", label: "إضافة مسحوب", icon: "💸" },
     { href: "/dashboard/reports", label: "التقارير", icon: "📊" },
     { href: "/dashboard/mico", label: "Mico Live", icon: "💰" },
+    { href: "/dashboard/package-image", label: "إنشاء صورة بكج", icon: "🖼️" },
   ];
 
   return (
