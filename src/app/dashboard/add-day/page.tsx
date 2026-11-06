@@ -1,11 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function AddDayPage() {
-  const router = useRouter();
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [employer, setEmployer] = useState("");
   const [location, setLocation] = useState("");
@@ -50,78 +48,76 @@ export default function AddDayPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-950 p-4">
-      <div className="max-w-md mx-auto pt-8">
-        <div className="flex items-center gap-3 mb-6">
-          <Link href="/dashboard" className="text-slate-400 hover:text-sky-400 text-2xl">←</Link>
-          <h1 className="text-2xl font-bold">📅 إضافة يوم عمل</h1>
+    <div className="max-w-2xl mx-auto">
+      <div className="flex items-center gap-3 mb-8 mt-4">
+        <Link href="/dashboard" className="md:hidden text-slate-400 hover:text-sky-400 text-2xl">←</Link>
+        <h1 className="text-3xl font-bold">📅 إضافة يوم عمل</h1>
+      </div>
+
+      <form onSubmit={handleSubmit} className="bg-slate-900 rounded-2xl border border-slate-800 p-6 md:p-8 space-y-6 shadow-lg">
+        <div>
+          <label className="block text-sm text-slate-400 mb-2">التاريخ *</label>
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
+            required
+          />
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4">
-          <div>
-            <label className="block text-sm text-slate-400 mb-2">التاريخ *</label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
-              required
-            />
+        <div>
+          <label className="block text-sm text-slate-400 mb-2">اسم صاحب العمل *</label>
+          <input
+            type="text"
+            value={employer}
+            onChange={(e) => setEmployer(e.target.value)}
+            placeholder="مثلاً: أبو أحمد"
+            className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm text-slate-400 mb-2">المكان</label>
+          <input
+            type="text"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            placeholder="مثلاً: ورشة النور"
+            className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm text-slate-400 mb-2">ملاحظات</label>
+          <input
+            type="text"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="أي تفاصيل إضافية..."
+            className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
+          />
+        </div>
+
+        {message && (
+          <div className={`p-4 rounded-xl text-sm text-center font-bold ${
+            message.includes("✅") 
+              ? "bg-green-500/10 border border-green-500/30 text-green-400" 
+              : "bg-red-500/10 border border-red-500/30 text-red-400"
+          }`}>
+            {message}
           </div>
+        )}
 
-          <div>
-            <label className="block text-sm text-slate-400 mb-2">اسم صاحب العمل *</label>
-            <input
-              type="text"
-              value={employer}
-              onChange={(e) => setEmployer(e.target.value)}
-              placeholder="مثلاً: أبو أحمد"
-              className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm text-slate-400 mb-2">المكان</label>
-            <input
-              type="text"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="مثلاً: ورشة النور"
-              className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm text-slate-400 mb-2">ملاحظات</label>
-            <input
-              type="text"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="أي تفاصيل إضافية..."
-              className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
-            />
-          </div>
-
-          {message && (
-            <div className={`p-3 rounded-lg text-sm text-center ${
-              message.includes("✅") 
-                ? "bg-green-500/10 border border-green-500/30 text-green-400" 
-                : "bg-red-500/10 border border-red-500/30 text-red-400"
-            }`}>
-              {message}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={saving}
-            className="w-full px-6 py-4 rounded-xl bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-slate-900 font-bold transition"
-          >
-            {saving ? "جاري الحفظ..." : "💾 حفظ يوم العمل"}
-          </button>
-        </form>
-      </div>
-    </main>
+        <button
+          type="submit"
+          disabled={saving}
+          className="w-full px-6 py-4 rounded-xl bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-slate-900 font-bold text-lg transition"
+        >
+          {saving ? "جاري الحفظ..." : "💾 حفظ يوم العمل"}
+        </button>
+      </form>
+    </div>
   );
 }

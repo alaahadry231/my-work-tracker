@@ -18,27 +18,20 @@ export default function ReportsPage() {
   const [report, setReport] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [activeTab, setActiveTab] = useState<"days" | "payments" | "withdrawals">("days");
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
     setReport(null);
-    setActiveTab("days");
 
     try {
       const res = await fetch(`/api/reports?employer=${encodeURIComponent(employer.trim())}`);
       const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || "فشل جلب التقرير");
-        return;
-      }
-
+      if (!res.ok) throw new Error(data.error);
       setReport(data);
-    } catch {
-      setError("تعذر الاتصال بالخادم");
+    } catch (err: any) {
+      setError(err.message || "تعذر الاتصال بالخادم");
     } finally {
       setLoading(false);
     }
@@ -46,152 +39,147 @@ export default function ReportsPage() {
 
   const formatDate = (dateStr: string) => {
     try {
-      return new Date(dateStr).toLocaleDateString("en-GB"); // يعطي تاريخ بشكل 01/11/2026
+      return new Date(dateStr).toLocaleDateString("en-GB");
     } catch {
       return dateStr;
     }
   };
 
   return (
-    <main className="min-h-screen bg-slate-950 p-4">
-      <div className="max-w-md mx-auto pt-8 pb-20">
-        <div className="flex items-center gap-3 mb-6">
-          <Link href="/dashboard" className="text-slate-400 hover:text-sky-400 text-2xl">←</Link>
-          <h1 className="text-2xl font-bold">📊 التقارير</h1>
+    <div className="max-w-6xl mx-auto">
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-3xl font-bold">📊 التقارير</h1>
+        <Link href="/dashboard" className="md:hidden text-slate-400 hover:text-sky-400">← رجوع</Link>
+      </div>
+
+      <form onSubmit={handleSearch} className="bg-slate-900 rounded-2xl border border-slate-800 p-6 flex flex-col md:flex-row gap-4 items-end mb-8 shadow-lg">
+        <div className="flex-1 w-full">
+          <label className="block text-sm text-slate-400 mb-2">اسم صاحب العمل</label>
+          <input
+            type="text"
+            value={employer}
+            onChange={(e) => setEmployer(e.target.value)}
+            placeholder="مثلاً: زاهر"
+            className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
+            required
+          />
         </div>
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full md:w-auto px-8 py-3 rounded-xl bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-slate-900 font-bold transition whitespace-nowrap"
+        >
+          {loading ? "جاري البحث..." : "🔍 عرض التقرير"}
+        </button>
+      </form>
 
-        <form onSubmit={handleSearch} className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 mb-6">
-          <div>
-            <label className="block text-sm text-slate-400 mb-2">اسم صاحب العمل</label>
-            <input
-              type="text"
-              value={employer}
-              onChange={(e) => setEmployer(e.target.value)}
-              placeholder="مثلاً: أبو أحمد"
-              className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 focus:border-sky-500 focus:outline-none text-white transition"
-              required
-            />
+      {error && <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-center mb-8">{error}</div>}
+
+      {report && (
+        <div className="space-y-8">
+          {/* الإجماليات */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-slate-900 rounded-2xl p-6 border border-slate-800 flex items-center justify-between shadow-lg">
+              <div>
+                <div className="text-slate-400 text-sm mb-1">أيام العمل</div>
+                <div className="text-4xl font-bold text-sky-400">{report.total_days}</div>
+              </div>
+              <div className="text-5xl opacity-20">📅</div>
+            </div>
+            <div className="bg-slate-900 rounded-2xl p-6 border border-slate-800 flex items-center justify-between shadow-lg">
+              <div>
+                <div className="text-slate-400 text-sm mb-1">إجمالي الدفعات</div>
+                <div className="text-3xl font-bold text-green-400">{report.total_payments.toLocaleString("en-US")} <span className="text-sm">ل.س</span></div>
+              </div>
+              <div className="text-5xl opacity-20">💰</div>
+            </div>
+            <div className="bg-slate-900 rounded-2xl p-6 border border-slate-800 flex items-center justify-between shadow-lg">
+              <div>
+                <div className="text-slate-400 text-sm mb-1">إجمالي المسحوبات</div>
+                <div className="text-3xl font-bold text-red-400">{report.total_withdrawals.toLocaleString("en-US")} <span className="text-sm">ل.س</span></div>
+              </div>
+              <div className="text-5xl opacity-20">💸</div>
+            </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full px-6 py-4 rounded-xl bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-slate-900 font-bold transition"
-          >
-            {loading ? "جاري البحث..." : "🔍 عرض التقرير"}
-          </button>
-        </form>
-
-        {error && (
-          <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm text-center mb-4">
-            {error}
-          </div>
-        )}
-
-        {report && (
-          <div className="space-y-4">
-            {/* الإجماليات */}
-            <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6">
-              <h2 className="text-xl font-bold text-center border-b border-slate-800 pb-3 mb-4">
-                📋 تقرير: {report.employer}
-              </h2>
-              <div className="grid grid-cols-3 gap-2">
-                <div className="bg-slate-950 rounded-xl p-3 text-center border border-slate-800">
-                  <div className="text-xl font-bold text-sky-400">{report.total_days}</div>
-                  <div className="text-[10px] text-slate-500 mt-1">📅 أيام</div>
-                </div>
-                <div className="bg-slate-950 rounded-xl p-3 text-center border border-slate-800">
-                  <div className="text-xl font-bold text-green-400">{report.total_payments.toLocaleString("en-US")}</div>
-                  <div className="text-[10px] text-slate-500 mt-1">💰 دفعات</div>
-                </div>
-                <div className="bg-slate-950 rounded-xl p-3 text-center border border-slate-800">
-                  <div className="text-xl font-bold text-red-400">{report.total_withdrawals.toLocaleString("en-US")}</div>
-                  <div className="text-[10px] text-slate-500 mt-1">💸 مسحوبات</div>
-                </div>
+          {/* التفاصيل (عمودين على الكمبيوتر) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            {/* الأيام */}
+            <div className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-lg flex flex-col">
+              <div className="bg-slate-800/50 p-4 border-b border-slate-800 font-bold text-lg text-sky-400">📅 سجل الأيام</div>
+              <div className="flex-1 overflow-y-auto max-h-[400px]">
+                {report.days.length === 0 ? (
+                  <div className="p-8 text-center text-slate-500">لا توجد أيام مسجلة</div>
+                ) : (
+                  <table className="w-full text-right">
+                    <thead className="bg-slate-950/50 text-slate-400 text-sm sticky top-0">
+                      <tr>
+                        <th className="p-3 font-normal">التاريخ</th>
+                        <th className="p-3 font-normal">المكان / ملاحظات</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800">
+                      {report.days.map((day, i) => (
+                        <tr key={i} className="hover:bg-slate-800/30 transition">
+                          <td className="p-3 text-white font-medium">{formatDate(day.work_date)}</td>
+                          <td className="p-3 text-slate-400 text-sm">
+                            {day.location && <span className="mr-2">📍 {day.location}</span>}
+                            {day.notes}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
               </div>
             </div>
 
-            {/* التبويبات */}
-            <div className="flex bg-slate-900 rounded-xl p-1 border border-slate-800">
-              <button
-                onClick={() => setActiveTab("days")}
-                className={`flex-1 py-2 text-sm font-bold rounded-lg transition ${activeTab === "days" ? "bg-sky-500 text-slate-900" : "text-slate-400"}`}
-              >
-                الأيام
-              </button>
-              <button
-                onClick={() => setActiveTab("payments")}
-                className={`flex-1 py-2 text-sm font-bold rounded-lg transition ${activeTab === "payments" ? "bg-green-500 text-slate-900" : "text-slate-400"}`}
-              >
-                الدفعات
-              </button>
-              <button
-                onClick={() => setActiveTab("withdrawals")}
-                className={`flex-1 py-2 text-sm font-bold rounded-lg transition ${activeTab === "withdrawals" ? "bg-red-500 text-white" : "text-slate-400"}`}
-              >
-                المسحوبات
-              </button>
+            {/* العمليات المالية */}
+            <div className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-lg flex flex-col">
+              <div className="bg-slate-800/50 p-4 border-b border-slate-800 font-bold text-lg text-green-400">💰 سجل الدفعات والمسحوبات</div>
+              <div className="flex-1 overflow-y-auto max-h-[400px]">
+                {report.payments.length === 0 && report.withdrawals.length === 0 ? (
+                  <div className="p-8 text-center text-slate-500">لا توجد عمليات مالية</div>
+                ) : (
+                  <table className="w-full text-right">
+                    <thead className="bg-slate-950/50 text-slate-400 text-sm sticky top-0">
+                      <tr>
+                        <th className="p-3 font-normal">التاريخ</th>
+                        <th className="p-3 font-normal">النوع / ملاحظات</th>
+                        <th className="p-3 font-normal">المبلغ</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800">
+                      {report.payments.map((p, i) => (
+                        <tr key={`p-${i}`} className="hover:bg-slate-800/30 transition">
+                          <td className="p-3 text-white font-medium">{formatDate(p.trans_date)}</td>
+                          <td className="p-3 text-slate-400 text-sm">
+                            <span className="text-green-400 bg-green-500/10 px-2 py-1 rounded text-xs ml-2">دفعة</span>
+                            {p.notes}
+                          </td>
+                          <td className="p-3 text-green-400 font-bold">{Number(p.amount).toLocaleString("en-US")}</td>
+                        </tr>
+                      ))}
+                      {report.withdrawals.map((w, i) => (
+                        <tr key={`w-${i}`} className="hover:bg-slate-800/30 transition">
+                          <td className="p-3 text-white font-medium">{formatDate(w.trans_date)}</td>
+                          <td className="p-3 text-slate-400 text-sm">
+                            <span className="text-red-400 bg-red-500/10 px-2 py-1 rounded text-xs ml-2">مسحوب</span>
+                            {w.notes}
+                          </td>
+                          <td className="p-3 text-red-400 font-bold">{Number(w.amount).toLocaleString("en-US")}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
             </div>
 
-            {/* محتوى التبويبات */}
-            <div className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
-              {activeTab === "days" && (
-                <div className="divide-y divide-slate-800">
-                  {report.days.length === 0 ? (
-                    <div className="p-4 text-center text-slate-500 text-sm">لا توجد أيام مسجلة</div>
-                  ) : (
-                    report.days.map((day, i) => (
-                      <div key={i} className="p-4 flex justify-between items-center">
-                        <div>
-                          <div className="text-sm text-white font-bold">{formatDate(day.work_date)}</div>
-                          {day.location && <div className="text-xs text-slate-500">📍 {day.location}</div>}
-                        </div>
-                        {day.notes && <div className="text-xs text-slate-400 max-w-[50%] text-left">{day.notes}</div>}
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
-
-              {activeTab === "payments" && (
-                <div className="divide-y divide-slate-800">
-                  {report.payments.length === 0 ? (
-                    <div className="p-4 text-center text-slate-500 text-sm">لا توجد دفعات</div>
-                  ) : (
-                    report.payments.map((payment, i) => (
-                      <div key={i} className="p-4 flex justify-between items-center">
-                        <div>
-                          <div className="text-sm text-white font-bold">{formatDate(payment.trans_date)}</div>
-                          {payment.notes && <div className="text-xs text-slate-500">{payment.notes}</div>}
-                        </div>
-                        <div className="text-green-400 font-bold">{Number(payment.amount).toLocaleString("en-US")} ل.س</div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
-
-              {activeTab === "withdrawals" && (
-                <div className="divide-y divide-slate-800">
-                  {report.withdrawals.length === 0 ? (
-                    <div className="p-4 text-center text-slate-500 text-sm">لا توجد مسحوبات</div>
-                  ) : (
-                    report.withdrawals.map((w, i) => (
-                      <div key={i} className="p-4 flex justify-between items-center">
-                        <div>
-                          <div className="text-sm text-white font-bold">{formatDate(w.trans_date)}</div>
-                          {w.notes && <div className="text-xs text-slate-500">{w.notes}</div>}
-                        </div>
-                        <div className="text-red-400 font-bold">{Number(w.amount).toLocaleString("en-US")} ل.س</div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
-            </div>
           </div>
-        )}
-      </div>
-    </main>
+        </div>
+      )}
+    </div>
   );
 }
