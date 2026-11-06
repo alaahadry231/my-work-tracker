@@ -176,6 +176,10 @@ export default function MicoLivePage() {
     }
   }
 
+  // حساب المتبقي للتارغت الجاي
+  const nextTarget = targets.find(t => t.target_amount > currentTarget.target_amount);
+  const remainingForNext = nextTarget ? nextTarget.target_amount - totalDeposits : 0;
+
   if (loading) {
     return <div className="text-slate-500 text-center py-20">جاري التحميل...</div>;
   }
@@ -218,40 +222,46 @@ export default function MicoLivePage() {
         </div>
       ) : (
         <div className="space-y-6">
-          {/* بطاقة الشهر النشط والإجماليات */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="lg:col-span-2 bg-slate-900 rounded-2xl border border-slate-800 p-6 flex flex-col justify-between">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <div className="text-sm text-slate-400 mb-1">الشهر النشط</div>
-                  <div className="text-3xl font-bold text-sky-400">{activeMonth.month_name}</div>
-                </div>
-                <button
-                  onClick={handleCloseMonth}
-                  className="px-4 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold text-sm transition"
-                >
-                  🔒 إغلاق الشهر
-                </button>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-3 mt-4">
-                <div className="bg-slate-950 rounded-xl p-4 border border-slate-800">
-                  <div className="text-xs text-slate-500 mb-1">إجمالي الواردات</div>
-                  <div className="text-2xl font-bold text-green-400">{totalDeposits.toLocaleString("en-US")} توكن</div>
-                </div>
-                {/* 👇 التارغت والمخلص */}
-                <div className="bg-slate-950 rounded-xl p-4 border border-slate-800">
-                  <div className="text-xs text-slate-500 mb-1">التارغت الحالي</div>
-                  <div className="text-lg font-bold text-white mb-2">
-                    {Number(currentTarget.target_amount).toLocaleString("en-US")}
-                  </div>
-                  <div className="text-xs text-slate-500 mb-1">المخلص</div>
-                  <div className="text-lg font-bold text-yellow-400">
-                    {currentTarget.completed_amount.toLocaleString("en-US")}
-                  </div>
-                </div>
-              </div>
+          
+          {/* 👇 البطاقة الجديدة (4 مربعات) */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* 1. إجمالي الوارد */}
+            <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5 flex flex-col justify-center text-center">
+              <div className="text-sm text-slate-400 mb-2">إجمالي الوارد</div>
+              <div className="text-2xl font-bold text-green-400">{totalDeposits.toLocaleString("en-US")}</div>
+              <div className="text-xs text-slate-500 mt-1">توكن</div>
             </div>
+
+            {/* 2. المتبقي للجاي */}
+            <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5 flex flex-col justify-center text-center">
+              <div className="text-sm text-slate-400 mb-2">المتبقي للجاي</div>
+              <div className="text-2xl font-bold text-yellow-400">{remainingForNext.toLocaleString("en-US")}</div>
+              <div className="text-xs text-slate-500 mt-1">توكن</div>
+            </div>
+
+            {/* 3. المخلص */}
+            <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5 flex flex-col justify-center text-center">
+              <div className="text-sm text-slate-400 mb-2">المخلص</div>
+              <div className="text-2xl font-bold text-sky-400">${currentTarget.completed_amount.toLocaleString("en-US")}</div>
+              <div className="text-xs text-slate-500 mt-1">دولار</div>
+            </div>
+
+            {/* 4. التارغت الحالي */}
+            <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5 flex flex-col justify-center text-center">
+              <div className="text-sm text-slate-400 mb-2">التارغت الحالي</div>
+              <div className="text-2xl font-bold text-white">{currentTarget.target_amount.toLocaleString("en-US")}</div>
+              <div className="text-xs text-slate-500 mt-1">توكن</div>
+            </div>
+          </div>
+
+          {/* زر إغلاق الشهر */}
+          <div className="flex justify-end">
+            <button
+              onClick={handleCloseMonth}
+              className="px-4 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold text-sm transition"
+            >
+              🔒 إغلاق الشهر
+            </button>
           </div>
 
           {/* فورم إضافة وارد */}
