@@ -13,6 +13,7 @@ export default function Sidebar() {
     { href: "/dashboard/add-payment", label: "إضافة دفعة", icon: "💰" },
     { href: "/dashboard/add-withdrawal", label: "إضافة مسحوب", icon: "💸" },
     { href: "/dashboard/reports", label: "التقارير", icon: "📊" },
+    { href: "/dashboard/mico", label: "Mico Live", icon: "💰" },
   ];
 
   return (
