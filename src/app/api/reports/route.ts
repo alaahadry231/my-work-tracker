@@ -10,38 +10,43 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "employer مطلوب" }, { status: 400 });
     }
 
-    // عدد أيام العمل
-    const daysResult = await sql`
-      select count(*)::int as total_days
+    // 1. جلب أيام العمل
+    const days = await sql`
+      select work_date, location, notes
       from work_days
       where employer = ${employer}
+      order by work_date desc
     `;
 
-    // إجمالي الدفعات
-    const paymentsResult = await sql`
-      select coalesce(sum(amount), 0)::int as total_payments
+    // 2. جلب الدفعات
+    const payments = await sql`
+      select trans_date, amount, notes
       from transactions
       where employer = ${employer} and type = 'payment'
+      order by trans_date desc
     `;
 
-    // إجمالي المسحوبات
-    const withdrawalsResult = await sql`
-      select coalesce(sum(amount), 0)::int as total_withdrawals
+    // 3. جلب المسحوبات
+    const withdrawals = await sql`
+      select trans_date, amount, notes
       from transactions
       where employer = ${employer} and type = 'withdrawal'
+      order by trans_date desc
     `;
 
-    const totalDays = daysResult[0].total_days;
-    const totalPayments = paymentsResult[0].total_payments;
-    const totalWithdrawals = withdrawalsResult[0].total_withdrawals;
-    const net = totalPayments - totalWithdrawals;
+    // حساب الإجماليات
+    const totalDays = days.length;
+    const totalPayments = payments.reduce((sum, p) => sum + Number(p.amount), 0);
+    const totalWithdrawals = withdrawals.reduce((sum, w) => sum + Number(w.amount), 0);
 
     return NextResponse.json({
       employer,
       total_days: totalDays,
       total_payments: totalPayments,
       total_withdrawals: totalWithdrawals,
-      net,
+      days,
+      payments,
+      withdrawals,
     });
   } catch (error) {
     console.error("Report error:", error);
