@@ -166,18 +166,22 @@ export default function MicoLivePage() {
 
   const totalDeposits = deposits.reduce((sum, d) => sum + Number(d.amount), 0);
   
-  // حساب التارغت الحالي
+  // 1. نلاقي التارغت الحالي (آخر تارغت إحنا واصلين له أو تعديناه)
   let currentTarget = targets[0];
+  let currentIndex = 0;
   for (let i = 0; i < targets.length; i++) {
     if (totalDeposits >= targets[i].target_amount) {
       currentTarget = targets[i];
+      currentIndex = i;
     } else {
       break;
     }
   }
 
-  // حساب المتبقي للتارغت الجاي
-  const nextTarget = targets.find(t => t.target_amount > currentTarget.target_amount);
+  // 2. نلاقي التارغت اللي بعده مباشرة
+  const nextTarget = targets[currentIndex + 1] || null;
+  
+  // 3. نحسب المتبقي للجاي (التارغت الجاي - إجمالي الوارد)
   const remainingForNext = nextTarget ? nextTarget.target_amount - totalDeposits : 0;
 
   if (loading) {
@@ -223,7 +227,7 @@ export default function MicoLivePage() {
       ) : (
         <div className="space-y-6">
           
-          {/* 👇 البطاقة الجديدة (4 مربعات) */}
+          {/* البطاقة اللي فوق (4 مربعات) */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {/* 1. إجمالي الوارد */}
             <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5 flex flex-col justify-center text-center">
