@@ -166,23 +166,21 @@ export default function MicoLivePage() {
 
   const totalDeposits = deposits.reduce((sum, d) => sum + Number(d.amount), 0);
   
-  // 1. نلاقي التارغت الحالي (آخر تارغت إحنا واصلين له أو تعديناه)
-  let currentTarget = targets[0];
-  let currentIndex = 0;
+  // 👇 الحسبة الجديدة والصح
+  let currentTarget = { target_amount: 0, completed_amount: 0 };
+  let nextTarget = targets[0] || null;
+
   for (let i = 0; i < targets.length; i++) {
     if (totalDeposits >= targets[i].target_amount) {
       currentTarget = targets[i];
-      currentIndex = i;
+      nextTarget = targets[i + 1] || null;
     } else {
       break;
     }
   }
 
-  // 2. نلاقي التارغت اللي بعده مباشرة
-  const nextTarget = targets[currentIndex + 1] || null;
-  
-  // 3. نحسب المتبقي للجاي (التارغت الجاي - إجمالي الوارد)
-  const remainingForNext = nextTarget ? nextTarget.target_amount - totalDeposits : 0;
+  // المتبقي للجاي = (التارغت الجاي - إجمالي الوارد)
+  const remainingForNext = nextTarget ? (nextTarget.target_amount - totalDeposits) : 0;
 
   if (loading) {
     return <div className="text-slate-500 text-center py-20">جاري التحميل...</div>;
