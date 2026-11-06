@@ -65,17 +65,29 @@ export async function PUT(req: NextRequest) {
   }
 }
 
+// 👇 دالة الحذف
 export async function DELETE(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const depositId = searchParams.get("deposit_id");
+    const monthId = searchParams.get("month_id");
 
-    if (!depositId) {
-      return NextResponse.json({ error: "deposit_id مطلوب" }, { status: 400 });
+    // حذف وارد
+    if (depositId) {
+      await sql`delete from mico_deposits where id = ${depositId}`;
+      return NextResponse.json({ success: true });
     }
 
-    await sql`delete from mico_deposits where id = ${depositId}`;
-    return NextResponse.json({ success: true });
+    // حذف شهر كامل (مع كل وارداته)
+    if (monthId) {
+      // حذف الواردات أولاً (عشان ما يصير خطأ في القيود)
+      await sql`delete from mico_deposits where month_id = ${monthId}`;
+      // بعدها حذف الشهر
+      await sql`delete from mico_months where id = ${monthId}`;
+      return NextResponse.json({ success: true });
+    }
+
+    return NextResponse.json({ error: "deposit_id أو month_id مطلوب" }, { status: 400 });
   } catch (error) {
     console.error("Delete error:", error);
     return NextResponse.json({ error: "Delete failed" }, { status: 500 });

@@ -8,7 +8,7 @@ type Month = {
   month_name: string;
   status: string;
   created_at: string;
-  total_deposits: number; // 👈 ضفنا هاد
+  total_deposits: number;
 };
 
 type Deposit = {
@@ -133,6 +133,18 @@ export default function MicoLivePage() {
     }
   };
 
+  // 👇 دالة حذف الشهر
+  const handleDeleteMonth = async (monthId: number, monthName: string) => {
+    if (!confirm(`هل أنت متأكد من حذف شهر "${monthName}" وكل الواردات اللي فيه؟ لا يمكن التراجع!`)) return;
+    try {
+      const res = await fetch(`/api/mico?month_id=${monthId}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("فشل حذف الشهر");
+      await fetchData();
+    } catch (err: any) {
+      setMessage(err.message);
+    }
+  };
+
   const handleCloseMonth = async () => {
     if (!activeMonth) return;
     if (!confirm("هل أنت متأكد من إغلاق الشهر؟ لن تتمكن من إضافة واردات جديدة عليه.")) return;
@@ -165,7 +177,6 @@ export default function MicoLivePage() {
     }
   };
 
-  // دالة عشان نحسب التارغت اللي وصله الشهر
   const getMonthTarget = (total: number) => {
     let currentTarget = { target_amount: 0, completed_amount: 0 };
     for (let i = 0; i < targets.length; i++) {
@@ -237,7 +248,6 @@ export default function MicoLivePage() {
       ) : (
         <div className="space-y-6">
           
-          {/* البطاقة اللي فوق (4 مربعات) */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5 flex flex-col justify-center text-center">
               <div className="text-sm text-slate-400 mb-2">إجمالي الوارد</div>
@@ -273,7 +283,6 @@ export default function MicoLivePage() {
             </button>
           </div>
 
-          {/* فورم إضافة وارد */}
           <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6">
             <h2 className="text-lg font-bold mb-4">➕ إضافة وارد جديد</h2>
             <form onSubmit={handleAddDeposit} className="grid grid-cols-1 md:grid-cols-4 gap-3">
@@ -310,7 +319,6 @@ export default function MicoLivePage() {
             </form>
           </div>
 
-          {/* جدول الواردات */}
           <div className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
             <div className="p-4 border-b border-slate-800 bg-slate-800/50 font-bold">سجل واردات {activeMonth.month_name}</div>
             <table className="w-full text-right">
@@ -354,18 +362,28 @@ export default function MicoLivePage() {
           <h2 className="text-xl font-bold mb-4">📚 سجل الشهور المغلقة</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {months.filter(m => m.status === "closed").map((month) => {
-              // 👇 نجيب التارغت اللي وصله هالشهر
               const monthTarget = getMonthTarget(Number(month.total_deposits));
               return (
-                <button
+                <div
                   key={month.id}
-                  onClick={() => loadHistoryMonth(month)}
-                  className="bg-slate-900 rounded-2xl border border-slate-800 p-4 hover:border-sky-500/50 transition text-right flex flex-col gap-1"
+                  className="bg-slate-900 rounded-2xl border border-slate-800 p-4 transition text-right flex flex-col gap-1"
                 >
-                  <div className="text-lg font-bold text-sky-400">{month.month_name}</div>
+                  <div className="flex justify-between items-start">
+                    <button onClick={() => loadHistoryMonth(month)} className="text-lg font-bold text-sky-400 hover:text-sky-300 text-right">
+                      {month.month_name}
+                    </button>
+                    {/* 👇 زر حذف الشهر */}
+                    <button
+                      onClick={() => handleDeleteMonth(month.id, month.month_name)}
+                      className="text-red-400 hover:text-red-300 text-xs bg-red-500/10 hover:bg-red-500/20 px-2 py-1 rounded transition"
+                      title="حذف الشهر"
+                    >
+                      🗑️
+                    </button>
+                  </div>
                   <div className="text-xs text-green-400">الوارد: {Number(month.total_deposits).toLocaleString("en-US")} توكن</div>
                   <div className="text-xs text-white">التارغت: {monthTarget.target_amount.toLocaleString("en-US")}</div>
-                </button>
+                </div>
               );
             })}
           </div>
@@ -379,7 +397,6 @@ export default function MicoLivePage() {
             <div className="flex items-center justify-between p-4 border-b border-slate-800">
               <div>
                 <h3 className="text-xl font-bold">سجل {selectedHistoryMonth.month_name}</h3>
-                {/* 👇 عرض ملخص الشهر */}
                 <div className="text-sm text-slate-400 mt-1">
                   الوارد: {Number(selectedHistoryMonth.total_deposits).toLocaleString("en-US")} توكن | 
                   التارغت اللي وصله: {getMonthTarget(Number(selectedHistoryMonth.total_deposits)).target_amount.toLocaleString("en-US")} توكن
